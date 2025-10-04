@@ -7,7 +7,7 @@ CUDA Path Tracer
   * [LinkedIn](https://www.linkedin.com/in/marcushedlund/)
 * Tested on: Windows 11, Intel Core Ultra 9 185H @ 2.5 GHz 16GB, NVIDIA GeForce RTX 4070 Laptop GPU 8GB (Personal Computer)
 
-|![glassDragonImage](img/dragonAttenCropped.png)|
+|![glassDragonImage](img/DragonAttenCropped.png)|
 |:--:|
 |*Glass Dragon render. Model from KhronosGroup gltf models. Replace with cooler scenes later :D*|
 
