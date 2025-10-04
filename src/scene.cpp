@@ -1,6 +1,7 @@
 #include "scene.h"
 
 #include "utilities.h"
+#include "gltfLoader.h"
 
 #include <glm/gtc/matrix_inverse.hpp>
 #include <glm/gtx/string_cast.hpp>
@@ -10,25 +11,37 @@
 #include <iostream>
 #include <string>
 #include <unordered_map>
+#include "octree.h"
 
 using namespace std;
 using json = nlohmann::json;
 
+string sceneDir = "../scenes/";
+vector<string> scenesToLoad = {"cornellRoom.json", "duck/duck.gltf"};
+
 Scene::Scene(string filename)
 {
+
+  for (string scene : scenesToLoad) {
+    filename = sceneDir + scene;
     cout << "Reading scene from " << filename << " ..." << endl;
     cout << " " << endl;
     auto ext = filename.substr(filename.find_last_of('.'));
     if (ext == ".json")
     {
-        loadFromJSON(filename);
-        return;
+      loadFromJSON(filename);
+    }
+    else if (ext == ".gltf") {
+      loadFromGLTF(filename);
     }
     else
     {
-        cout << "Couldn't read from " << filename << endl;
-        exit(-1);
+      cout << "Couldn't read from " << filename << endl;
+      exit(-1);
     }
+  }
+  octree.buildOctree(geoms, 8, 10);
+
 }
 
 void Scene::loadFromJSON(const std::string& jsonName)
@@ -58,6 +71,12 @@ void Scene::loadFromJSON(const std::string& jsonName)
         {
             const auto& col = p["RGB"];
             newMaterial.color = glm::vec3(col[0], col[1], col[2]);
+            newMaterial.hasReflective = true;
+            newMaterial.hasRefractive = true;
+            newMaterial.diffuseP = 0.0f;
+            newMaterial.specularP = 1.0f;
+            newMaterial.indexOfRefraction = 1.5;
+            newMaterial.specular.exponent = 0;
         }
         MatNameToID[name] = materials.size();
         materials.emplace_back(newMaterial);
@@ -121,4 +140,77 @@ void Scene::loadFromJSON(const std::string& jsonName)
     int arraylen = camera.resolution.x * camera.resolution.y;
     state.image.resize(arraylen);
     std::fill(state.image.begin(), state.image.end(), glm::vec3());
+}
+
+
+void Scene::loadFromGLTF(const std::string& gltfName)
+{
+  // Set up default camera and state
+  Camera& camera = state.camera;
+  RenderState& state = this->state;
+  camera.resolution.x = 800;
+  camera.resolution.y = 800;
+  float fovy = 45.0;
+  state.iterations = 5000;
+  state.traceDepth = 8;
+  state.imageName = "gltfImg";
+  camera.position = glm::vec3(0.0, 1.0, 3.0);
+  camera.lookAt = glm::vec3(0.0, 1.0, 0.0);
+  camera.up = glm::vec3(.0, 1.0, 0.0);
+
+  //calculate fov based on resolution
+  float yscaled = tan(fovy * (PI / 180));
+  float xscaled = (yscaled * camera.resolution.x) / camera.resolution.y;
+  float fovx = (atan(xscaled) * 180) / PI;
+  camera.fov = glm::vec2(fovx, fovy);
+
+  camera.right = glm::normalize(glm::cross(camera.view, camera.up));
+  camera.pixelLength = glm::vec2(2 * xscaled / (float)camera.resolution.x,
+    2 * yscaled / (float)camera.resolution.y);
+
+  camera.view = glm::normalize(camera.lookAt - camera.position);
+
+  // actually load the gltf file
+  if (!loadGltfAsTriangles(gltfName, geoms, materials, textures)) {
+    std::cerr << "load gltf as traingles failes" << std::endl;
+    exit(-1);
+  }
+
+  // add a light if none exists
+  bool hasLight = false;
+  for (const auto& mat : materials) {
+    if (mat.emittance > 0.0f) {
+      hasLight = true;
+      break;
+    }
+  }
+
+  if (!hasLight) {
+    Material lightMat = {};
+    lightMat.color = glm::vec3(1.0f, 1.0f, 1.0f);
+    lightMat.emittance = 5.0f;
+    materials.push_back(lightMat);
+    // add a big sphere light
+    Geom lightGeom = {};
+    lightGeom.type = SPHERE;
+    lightGeom.materialid = materials.size() - 1;
+    lightGeom.translation = glm::vec3(0.0f, 5.0f, 0.0f);
+    lightGeom.scale = glm::vec3(3.0f, 3.0f, 3.0f);
+    lightGeom.rotation = glm::vec3(0.0f, 0.0f, 0.0f);
+    lightGeom.transform = utilityCore::buildTransformationMatrix(
+      lightGeom.translation, lightGeom.rotation, lightGeom.scale);
+    lightGeom.inverseTransform = glm::inverse(lightGeom.transform);
+    lightGeom.invTranspose = glm::inverseTranspose(lightGeom.transform);
+    geoms.push_back(lightGeom);
+  }
+
+  // print geometry and material counts
+  std::cout << "Loaded glTF scene with " << geoms.size() << " geometries and "
+    << materials.size() << " materials." << std::endl;
+
+
+  //set up render camera stuff
+  int arraylen = camera.resolution.x * camera.resolution.y;
+  state.image.resize(arraylen);
+  std::fill(state.image.begin(), state.image.end(), glm::vec3());
 }

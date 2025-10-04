@@ -57,6 +57,8 @@ set(headers
     src/scene.h
     src/sceneStructs.h
     src/utilities.h
+    src/gltfLoader.h
+    src/octree.h
 )
 
 set(sources
@@ -69,6 +71,9 @@ set(sources
     src/interactions.cu
     src/scene.cpp
     src/utilities.cpp
+    src/gltfLoader.cpp
+    src/tiny_gltf.cpp
+    src/octree.cpp
 )
 
 set(imgui_headers

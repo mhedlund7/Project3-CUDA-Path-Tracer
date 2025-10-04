@@ -71,3 +71,11 @@ __host__ __device__ float sphereIntersectionTest(
     glm::vec3& intersectionPoint,
     glm::vec3& normal,
     bool& outside);
+
+// Test intersection between a ray and a transformedtrianngle. The untransoformed triangle is defined by it's three vertices.
+__host__ __device__ float triangleIntersectionTest(
+    Geom triangle,
+    Ray r,
+    glm::vec3& intersectionPoint,
+    glm::vec3& normal,
+  bool& outside);

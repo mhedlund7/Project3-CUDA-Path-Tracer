@@ -12,13 +12,33 @@
 enum GeomType
 {
     SPHERE,
-    CUBE
+    CUBE,
+    TRIANGLE
 };
 
 struct Ray
 {
     glm::vec3 origin;
     glm::vec3 direction;
+};
+
+// CPU texture
+struct CPUTexture {
+  int width = 0;
+  int height = 0;
+  int channels = 4;
+
+  std::vector<uint8_t> rgba; //pixel rgba values for each pixel in texture
+};
+
+struct GPUTexture {
+  // texture data
+  int width;
+  int height;
+  unsigned char* rgba;
+  // texture settings
+  int wrapS;
+  int wrapT;
 };
 
 struct Geom
@@ -31,6 +51,11 @@ struct Geom
     glm::mat4 transform;
     glm::mat4 inverseTransform;
     glm::mat4 invTranspose;
+
+    // Used for storing triangle vertices if GeomType is TRIANGLE
+    glm::vec3 triangleVertices[3];
+    // Sample from texture if needed
+    glm::vec2 triangleUVs[3];
 };
 
 struct Material
@@ -45,6 +70,13 @@ struct Material
     float hasRefractive;
     float indexOfRefraction;
     float emittance;
+
+    // probability weights
+    float diffuseP;
+    float specularP;
+
+    // textures
+    int baseColorTexture;
 };
 
 struct Camera
@@ -74,6 +106,7 @@ struct PathSegment
     glm::vec3 color;
     int pixelIndex;
     int remainingBounces;
+    int bouncesCompleted;
 };
 
 // Use with a corresponding PathSegment to do:
@@ -84,4 +117,8 @@ struct ShadeableIntersection
   float t;
   glm::vec3 surfaceNormal;
   int materialId;
+
+  // uvs
+  glm::vec2 uv;
+  float hasUV;
 };

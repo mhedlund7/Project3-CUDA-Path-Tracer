@@ -1,4 +1,5 @@
 #include "intersections.h"
+#include <glm/gtx/intersect.hpp>
 
 __host__ __device__ float boxIntersectionTest(
     Geom box,
@@ -111,3 +112,60 @@ __host__ __device__ float sphereIntersectionTest(
 
     return glm::length(r.origin - intersectionPoint);
 }
+
+
+__host__ __device__ float triangleIntersectionTest(
+  Geom triangle,
+  Ray r,
+  glm::vec3& intersectionPoint,
+  glm::vec3& normal,
+  bool& outside)
+{
+  // traingle vertices already stored in world space, don't transformm ray
+  const glm::vec3 v0 = triangle.triangleVertices[0];
+  const glm::vec3 v1 = triangle.triangleVertices[1];
+  const glm::vec3 v2 = triangle.triangleVertices[2];
+
+  // Do Moller Trumbore triangle intersection :D from https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle/moller-trumbore-ray-triangle-intersection.html
+
+  const glm::vec3 edge1 = v1 - v0;
+  const glm::vec3 edge2 = v2 - v0;
+
+  const glm::vec3 pvec = glm::cross(r.direction, edge2);
+  const float det = glm::dot(edge1, pvec);
+
+  // iff det is negative/ close to 0 back facing/miss
+  const float EPS = 1e-7f;
+  if (fabsf(det) < EPS) {
+    return -1.0f;
+  }
+  const float invDet = 1.0f / det;
+
+  const glm::vec3 tvec = r.origin - v0;
+  const float u = glm::dot(tvec, pvec) * invDet;
+  if (u < 0.0f || u > 1.0f) {
+    return -1.0f;
+  }
+
+  const glm::vec3 qvec = glm::cross(tvec, edge1);
+  const float v = glm::dot(r.direction, qvec) * invDet;
+  if (v < 0.0f || u + v > 1.0f) {
+    return -1.0f;
+  }
+
+  const float t = glm::dot(edge2, qvec) * invDet;
+  if (t <= EPS) return -1.0f; // hit behind origin or too close, don't wnt double hits
+
+  intersectionPoint = r.origin + t * r.direction;
+
+  // Geometric normal
+  glm::vec3 N = glm::normalize(glm::cross(edge1, edge2));
+
+  // forward normal
+  outside = glm::dot(N, r.direction) < 0.0f;
+  if (!outside) N = -N;
+  normal = N;
+
+  return t;
+}
+
