@@ -3,11 +3,44 @@ CUDA Path Tracer
 
 **University of Pennsylvania, CIS 565: GPU Programming and Architecture, Project 3**
 
-* (TODO) YOUR NAME HERE
-* Tested on: (TODO) Windows 22, i7-2222 @ 2.22GHz 22GB, GTX 222 222MB (Moore 2222 Lab)
+* Marcus Hedlund
+  * [LinkedIn](https://www.linkedin.com/in/marcushedlund/)
+* Tested on: Windows 11, Intel Core Ultra 9 185H @ 2.5 GHz 16GB, NVIDIA GeForce RTX 4070 Laptop GPU 8GB (Personal Computer)
 
-### (TODO: Your README)
+|![glassDragonImage](img/dragonAttenCropped.png)|
+|:--:|
+|*Glass Dragon render. Model from KhronosGroup gltf models. Replace with cooler scenes later :D*|
 
-*DO NOT* leave the README to the last minute! It is a crucial part of the
-project, and we will not be able to grade you without a good README.
 
+# Table of Contents
+
+Features:
+* Core: 
+    * Basic CUDA path tracer
+    * BSDF kernel for ideal diffuse surfaces
+    * Making rays/pathSegments/intersections contiguous in memory by material type
+    * Stochastic sampled antialiasing
+* Additional
+    * Refraction
+    * Texture mapping 
+    * Arbitrary mesh loading: gltf
+    * Octree hierarchical spatial data structure
+    * Russian roulette path termination
+
+# Overview
+
+# Performance Analysis
+
+# Bloopers
+
+|![duck blooper 1](img/duckBlooper.png)|
+|:--:|
+|*Messed up mesh loading*|
+
+|![duck blooper 2](img/duckBlooper2.png)|
+|:--:|
+|*Messed up mesh loading*|
+
+|![duck blooper 2](img/betterDuck.png)|
+|:--:|
+|*How he's supposed to look :D*|
