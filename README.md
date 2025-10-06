@@ -49,7 +49,7 @@ In stream compaction, after every ray bounce, dead paths (ones that missed all s
 
 |![Open Scene Stream Compaction Performance Comparison](img/OpenSceneStreamCompaction.png)|![Closed Scene Stream Compaction Performance Comparison](img/ClosedSceneStreamCompaction.png)|
 |:--:|:--:|
-|*Open Scene Stream Compaction Performance Comparison*|*Closed Scene Stream Compaction Performance Comparison*|
+|*Closed Scene Stream Compaction Performance Comparison*|*Open Scene Stream Compaction Performance Comparison*|
 
 From the graphs we can see that in an open scene stream compaction greatly reduces the amount of surviving rays over just a couple of bounces and thus greatly increases the performance of our kernels. This makes sense because the scene's openness means that many rays can simply escape the scene entirely and be terminated. In an open scene however we see that the number of surviving rays barely decreases at all. This is because the rays have no way to escape the scene, so the only way for them to be terminated is if they hit a light source. This means that for closed scenes, stream compaction will not give us much of a performance boost.
 
